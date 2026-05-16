@@ -82,7 +82,7 @@ files.forEach((fileName: string, index: number) => {
   }
 });
 
-const yt = await Innertube.create({ 
+const yt = await Innertube.create({
   cache: new UniversalCache(true),
   lang: 'ja',
   location: 'JP'
@@ -94,5 +94,18 @@ for (const videoId of videoIds) {
     client: 'YTMUSIC',
     parse: true
   });
-  console.log(`videoId: ${videoId} | Title: ${videoInfo.video_details?.title}`);
+
+  const title = videoInfo.video_details?.title;
+  if (title) {
+    const sanitizedTitle = title.replace(/[\\/:*?"<>|]/g, '_');
+    const oldFileName = videoId;
+    const newFileName = `${sanitizedTitle}.mp4`;
+
+    if (fs.existsSync(oldFileName)) {
+      fs.renameSync(oldFileName, newFileName);
+      console.log(`Rename ${oldFileName} to ${newFileName}`);
+    }
+  } else {
+    console.warn(`Failed to get title of ${videoId}`);
+  }
 }
