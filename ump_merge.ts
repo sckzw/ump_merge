@@ -1,11 +1,16 @@
 import * as fs from 'fs';
+import * as path from 'path';
+import { globSync } from 'glob';
 import { CompositeBuffer, UmpReader } from 'googlevideo/ump';
 import { MediaHeader, UMPPartId } from 'googlevideo/protos';
 import { concatenateChunks } from 'googlevideo/utils';
 import type { Part } from 'googlevideo/shared-types';
 
+let currentVideoId: string = '';
+
 function handleMediaHeader(part: Part) {
   const mediaHeader = MediaHeader.decode(concatenateChunks(part.data.chunks));
+  currentVideoId = mediaHeader.videoId || 'unknown';
   console.log('Media Header:', mediaHeader);
 }
 
@@ -20,7 +25,7 @@ function handleMedia(part: Part) {
 
   for (const chunk of dataBuffer.chunks) {
     console.log('File append size: ', chunk.byteLength, 'bytes');
-    fs.appendFileSync('media_file', chunk);
+    fs.appendFileSync(currentVideoId, chunk);
   }
 }
 
@@ -35,13 +40,17 @@ const umpPartHandlers = new Map<UMPPartId, (part: Part) => void>([
   [ UMPPartId.MEDIA_END, handleMediaEnd ]
 ]);
 
-const files = process.argv.slice(2);
-if (files.length === 0) {
-  console.log('処理するファイル名を指定してください。');
+const targetFolder = process.argv[2];
+if (!targetFolder) {
+  console.log('フォルダパスを指定してください。');
   process.exit(1);
 }
 
-files.forEach((fileName: any, index: number) => {
+const filePattern = 'videoplayback_*';
+const searchPattern = path.join(targetFolder, filePattern);
+const files = globSync(searchPattern, { nodir: true, windowsPathsNoEscape: true }).sort();
+
+files.forEach((fileName: string, index: number) => {
   console.log(`[${index + 1}/${files.length}] ${fileName} を処理中...`);
 
   const ump_file_data = fs.readFileSync(fileName);
