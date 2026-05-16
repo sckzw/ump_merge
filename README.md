@@ -2,12 +2,12 @@
 
 ## 概要
 
-`ump_merge.ts`は複数のUMPファイルをロードし、各UMPファイルの`Media`パートのデータを抽出し`media_file`ファイルに追加していくことでデータを結合します。また、`MediaHeader`パートのヘッダ情報を表示します。
+`ump_merge.ts`は複数のUMPファイルの`Media`パートのデータを抽出・結合しファイルに保存します。また、ファイル名は`MediaHeader`パートの`videoId`を基に取得した曲名にリネームします。
 
 ## 使い方
 
 ```
 npm install
 npx tsc
-node ump_merge.js ump_file0 ump_file1 ...
+node ump_merge.js ./cache/videoplayback_*
 ```
