@@ -5,12 +5,19 @@ import { MediaHeader, UMPPartId } from 'googlevideo/protos';
 import { concatenateChunks } from 'googlevideo/utils';
 import type { Part } from 'googlevideo/shared-types';
 
-let currentVideoId: string = '';
+let currentVideoId: string = 'unknown';
+let previousVideoId: string = 'unknown';
+let isFirstMediaPart: boolean = false;
 
 function handleMediaHeader(part: Part) {
   const mediaHeader = MediaHeader.decode(concatenateChunks(part.data.chunks));
   currentVideoId = mediaHeader.videoId || 'unknown';
   console.log('Media Header:', mediaHeader);
+
+  if (currentVideoId !== previousVideoId) {
+    isFirstMediaPart = true;
+    previousVideoId = currentVideoId;
+  }
 }
 
 function handleMedia(part: Part) {
@@ -18,8 +25,14 @@ function handleMedia(part: Part) {
   const dataBuffer = part.data.split(1).remainingBuffer;
   console.log(`Media Part (Associated Header ID: ${headerId}):`, dataBuffer.getLength(), 'bytes');
   for (const chunk of dataBuffer.chunks) {
-    fs.appendFileSync(currentVideoId, chunk);
-    console.log(`Added ${chunk.byteLength} bytes of data to ${currentVideoId} file.`);
+    if (isFirstMediaPart) {
+      isFirstMediaPart = false;
+      fs.writeFileSync(currentVideoId, chunk);
+      console.log(`Write ${chunk.byteLength} bytes of data to ${currentVideoId} file.`);
+    } else {
+      fs.appendFileSync(currentVideoId, chunk);
+      console.log(`Append ${chunk.byteLength} bytes of data to ${currentVideoId} file.`);
+    }
   }
 }
 
