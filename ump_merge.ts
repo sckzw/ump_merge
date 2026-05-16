@@ -82,7 +82,11 @@ files.forEach((fileName: string, index: number) => {
   }
 });
 
-const yt = await Innertube.create({ cache: new UniversalCache(true) });
+const yt = await Innertube.create({ 
+  cache: new UniversalCache(true),
+  lang: 'ja',
+  location: 'JP'
+});
 
 for (const videoId of videoIds) {
   const videoInfo = await yt.actions.execute('/player', {
