@@ -4,7 +4,9 @@ import { CompositeBuffer, UmpReader } from 'googlevideo/ump';
 import { MediaHeader, UMPPartId } from 'googlevideo/protos';
 import { concatenateChunks } from 'googlevideo/utils';
 import type { Part } from 'googlevideo/shared-types';
+import { Innertube, UniversalCache } from 'youtubei.js';
 
+const videoIds: string[] = [];
 let currentVideoId: string = 'unknown';
 let previousVideoId: string = 'unknown';
 let isFirstMediaPart: boolean = false;
@@ -17,13 +19,15 @@ function handleMediaHeader(part: Part) {
   if (currentVideoId !== previousVideoId) {
     isFirstMediaPart = true;
     previousVideoId = currentVideoId;
+    videoIds.push(currentVideoId);
+    console.log(`New videoId: ${currentVideoId}`);
   }
 }
 
 function handleMedia(part: Part) {
   const headerId = part.data.getUint8(0);
   const dataBuffer = part.data.split(1).remainingBuffer;
-  console.log(`Media Part (Associated Header ID: ${headerId}):`, dataBuffer.getLength(), 'bytes');
+  console.log(`Media Part (Header ID: ${headerId}):`, dataBuffer.getLength(), 'bytes');
   for (const chunk of dataBuffer.chunks) {
     if (isFirstMediaPart) {
       isFirstMediaPart = false;
@@ -38,7 +42,7 @@ function handleMedia(part: Part) {
 
 function handleMediaEnd(part: Part) {
   const headerId = part.data.getUint8(0);
-  console.log(`Media End Part (Associated Header ID: ${headerId}):`, part.data.split(1).remainingBuffer.getLength(), 'bytes');
+  console.log(`Media End Part (Header ID: ${headerId}):`, part.data.split(1).remainingBuffer.getLength(), 'bytes');
 }
 
 const umpPartHandlers = new Map<UMPPartId, (part: Part) => void>([
@@ -56,7 +60,7 @@ if (!filePattern) {
 const files = globSync(filePattern, { nodir: true, windowsPathsNoEscape: true }).sort();
 
 files.forEach((fileName: string, index: number) => {
-  console.log(`[${index + 1}/${files.length}] ${fileName} を処理中...`);
+  console.log(`[${index + 1}/${files.length}] Processing ${fileName} ...`);
 
   const ump_file_data = fs.readFileSync(fileName);
   const uint8Array = new Uint8Array(ump_file_data);
@@ -77,3 +81,14 @@ files.forEach((fileName: string, index: number) => {
     console.log(partial.data.getLength());
   }
 });
+
+const yt = await Innertube.create({ cache: new UniversalCache(true) });
+
+for (const videoId of videoIds) {
+  const videoInfo = await yt.actions.execute('/player', {
+    videoId: videoId,
+    client: 'YTMUSIC',
+    parse: true
+  });
+  console.log(`videoId: ${videoId} | Title: ${videoInfo.video_details?.title}`);
+}

@@ -3,7 +3,8 @@
   "dependencies": {
     "glob": "^13.0.6",
     "googlevideo": "^4.0.4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "youtubei.js": "^17.0.1"
   },
   "devDependencies": {
     "@types/node": "^25.8.0"
