@@ -16,7 +16,7 @@
       "id": "filePath",
       "type": "promptString",
       "description": "ファイルパスを入力してください",
-      "default": "./videoplayback_*"
+      "default": "./cache/videoplayback_*"
     }
   ]
 }
