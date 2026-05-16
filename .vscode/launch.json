@@ -6,17 +6,17 @@
       "request": "launch",
       "name": "Debug TS File",
       "program": "${workspaceFolder}/ump_merge.ts",
-      "args": ["${input:targetFolder}"],
+      "args": ["${input:filePath}"],
       "console": "internalConsole",
       "skipFiles": ["<node_internals>/**"]
     }
   ],
   "inputs": [
     {
-      "id": "targetFolder",
+      "id": "filePath",
       "type": "promptString",
-      "description": "フォルダパスを入力してください",
-      "default": "./"
+      "description": "ファイルパスを入力してください",
+      "default": "./videoplayback_*"
     }
   ]
 }
